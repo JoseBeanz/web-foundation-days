@@ -1,0 +1,184 @@
+/* ----- CSS variables (light theme default) ----- */
+:root {
+  --bg-page: #f9fafc;
+  --bg-card: #ffffff;
+  --text-primary: #1a202c;
+  --text-secondary: #2d3748;
+  --border-light: #cbd5e0;
+  --btn-bg: #edf2f7;
+  --btn-text: #1a202c;
+  --btn-hover: #e2e8f0;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --warning-color: #dd6b20;   /* orange */
+  --over-color: #e53e3e;      /* red */
+}
+
+
+/* ----- dark theme: redefine variables only ----- */
+body.dark {
+  --bg-page: #1a202c;
+  --bg-card: #2d3748;
+  --text-primary: #f7fafc;
+  --text-secondary: #e2e8f0;
+  --border-light: #4a5568;
+  --btn-bg: #4a5568;
+  --btn-text: #f7fafc;
+  --btn-hover: #718096;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --warning-color: #ed8936;
+  --over-color: #fc8181;
+}
+
+/* ----- base styles using variables ----- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 1.5rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: 1.5rem;
+  padding: 2rem 2rem 1.8rem;
+  box-shadow: var(--shadow);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+h1 {
+  font-size: 1.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-secondary);
+}
+
+textarea {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border-radius: 1rem;
+  border: 2px solid var(--border-light);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.15s, background 0.2s, color 0.2s;
+  outline: none;
+  font-family: inherit;
+}
+
+textarea:focus {
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+}
+
+.counters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.75rem 0 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#char-count {
+  transition: color 0.2s, font-weight 0.2s;
+}
+
+/* warning & over classes (character counter only) */
+#char-count.warning {
+  color: var(--warning-color);
+  font-weight: 600;
+}
+
+#char-count.over {
+  color: var(--over-color);
+  font-weight: 700;
+}
+
+.buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+button {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 2rem;
+  padding: 0.7rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, color 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+  flex: 1 0 auto;
+}
+
+button:hover {
+  background: var(--btn-hover);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+#theme-toggle {
+  background: transparent;
+  border: 2px solid var(--border-light);
+  box-shadow: none;
+}
+
+#theme-toggle:hover {
+  background: var(--btn-hover);
+  border-color: var(--btn-hover);
+}
+
+.hint {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  text-align: center;
+  border-top: 1px solid var(--border-light);
+  padding-top: 1rem;
+}
+
+kbd {
+  background: var(--btn-bg);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
