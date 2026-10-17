@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Directory</title>
+  <script src="users.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h1>User directory</h1>
+    <div class="subhead">jsonplaceholder · fetch API · async/await</div>
+
+    <div class="controls">
+      <button id="load-users">Load users</button>
+      <div class="filter-group">
+        <label for="filter-input">Filter by name:</label>
+        <input id="filter-input" type="text" placeholder="e.g. Leanne, Ervin..." autocomplete="off" />
+      </div>
+    </div>
+
+    <p id="status" class="status-neutral" aria-live="polite"></p>
+    <ul id="users-list"></ul>
+  </div>
+
+
+</body>
+</html>
