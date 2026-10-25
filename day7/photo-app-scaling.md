@@ -115,6 +115,7 @@ text
            │ Thumbnail  │─────────────────────────┘
            │  Worker    │  (writes thumbnail to object storage,
            └────────────┘   updates DB metadata)
+
 6. Component explanations (one sentence each)
 CDN: Caches and serves photo bytes and thumbnails from edge locations near users, drastically reducing origin bandwidth and latency for the read-heavy feed.
 
@@ -133,35 +134,35 @@ Queue (SQS/Kafka): Buffers thumbnail-generation jobs so uploads return fast and 
 Thumbnail worker: Consumes jobs from the queue, downloads the original from object storage, generates the 50 KB thumbnail, uploads it, and updates metadata in the database.
 
 7. Upload flow (step by step)
-Client requests upload: App server authenticates the user and returns a pre-signed object-storage URL (so the photo never passes through app servers).
+    1. Client requests upload: App server authenticates the user and returns a pre-signed object-storage URL (so the photo never passes through app servers).
 
-Client uploads photo directly to object storage using the pre-signed URL; object storage confirms success.
+    2. Client uploads photo directly to object storage using the pre-signed URL; object storage confirms success.
 
-Client notifies app server of the completed upload (with the object key, caption, etc.).
+    3. Client notifies app server of the completed upload (with the object key, caption, etc.).
 
-App server writes photo metadata to the database primary (photo ID, owner, object key, caption, timestamp, status = "processing").
+    4. App server writes photo metadata to the database primary (photo ID, owner, object key, caption, timestamp, status = "processing").
 
-App server enqueues a thumbnail job on the queue containing the photo ID and object key.
+    5. App server enqueues a thumbnail job on the queue containing the photo ID and object key.
 
-App server returns success to the client immediately — the upload is done from the user's perspective.
+    6. App server returns success to the client immediately — the upload is done from the user's perspective.
 
-Thumbnail worker picks up the job, downloads the original from object storage, generates the 50 KB thumbnail, uploads it to object storage, and updates the DB metadata (thumbnail URL, status = "ready").
+    7. Thumbnail worker picks up the job, downloads the original from object storage, generates the 50 KB thumbnail, uploads it to object storage, and     updates the DB metadata (thumbnail URL, status = "ready").
 
-Feed generation: When the user's followers request their feed, the app server reads feed/metadata from cache (or DB read replica on miss), and the CDN serves the photo and thumbnail bytes.
+    8. Feed generation: When the user's followers request their feed, the app server reads feed/metadata from cache (or DB read replica on miss), and the CDN serves the photo and thumbnail bytes.
 
-Failure handling: If the worker fails, the queue retries; after max retries the job goes to a dead-letter queue and the photo stays marked "processing" for investigation.
+    9. Failure handling: If the worker fails, the queue retries; after max retries the job goes to a dead-letter queue and the photo stays marked "processing" for investigation.
 
 8. Trade-offs
-Pre-signed direct-to-object-storage uploads vs. proxying through app servers.
-Chosen: direct uploads. Benefit: app servers never handle 2 MB blobs, so they stay cheap and scalable. Cost: less control/inspection of uploads at the app layer (need object-storage-side validation, virus scanning as a separate async step, and careful pre-signed URL expiry).
+    1. Pre-signed direct-to-object-storage uploads vs. proxying through app servers.
+    Chosen: direct uploads. Benefit: app servers never handle 2 MB blobs, so they stay cheap and scalable. Cost: less control/inspection of uploads at the app layer (need object-storage-side validation, virus scanning as a separate async step, and careful pre-signed URL expiry).
 
-Asynchronous thumbnail generation vs. synchronous.
-Chosen: async via queue. Benefit: uploads return in milliseconds and the worker fleet scales independently. Cost: eventual consistency — a photo may briefly appear without a thumbnail (need a placeholder), and the system must handle retries/dead-letter queues.
+    2. Asynchronous thumbnail generation vs. synchronous.
+    Chosen: async via queue. Benefit: uploads return in milliseconds and the worker fleet scales independently. Cost: eventual consistency — a photo may briefly appear without a thumbnail (need a placeholder), and the system must handle retries/dead-letter queues.
 
-Aggressive caching + read replicas vs. strong consistency.
-Chosen: cache-first feed reads with read replicas. Benefit: handles ~2,900 feed views/sec at peak cheaply and with low latency. Cost: users may see slightly stale feeds (e.g., a new post appears a few seconds late), and cache invalidation adds complexity.
+    3. Aggressive caching + read replicas vs. strong consistency.
+    Chosen: cache-first feed reads with read replicas. Benefit: handles ~2,900 feed views/sec at peak cheaply and with low latency. Cost: users may see slightly stale feeds (e.g., a new post appears a few seconds late), and cache invalidation adds complexity.
 
-Storing originals at full 2 MB vs. compressing/resizing at upload.
-Chosen: store originals as-is (plus thumbnail). Benefit: preserves quality and allows future re-processing. Cost: ~748 TB/year of storage — significant cost, which could be reduced by tiering older photos to cold storage (another trade-off of cost vs. retrieval latency).
+    4. Storing originals at full 2 MB vs. compressing/resizing at upload.
+    Chosen: store originals as-is (plus thumbnail). Benefit: preserves quality and allows future re-processing. Cost: ~748 TB/year of storage — significant cost, which could be reduced by tiering older photos to cold storage (another trade-off of cost vs. retrieval latency).
 
 Daily active users: 1,000,000. Uploads/sec: ~11.6 avg / ~58 peak. Feed views/sec: ~579 avg / ~2,893 peak. Storage: ~748 TB/year (~0.75 PB). System is read-heavy (~50:1).
