@@ -40,3 +40,27 @@ may not enrol on the same course twice."*
 ```sql
 CREATE INDEX idx_enrolments_course ON enrolments(course_id);
 
+Reason: SQLite automatically creates an index on student_id for the
+composite UNIQUE (student_id, course_id) (a UNIQUE on a multi-column key
+creates an index whose leftmost column is student_id), so lookups by
+student are already fast. There is no index whose leftmost column is
+course_id, yet "all students on one course" (Query 2) and "students per
+course" (Query 3) both filter/group by course_id. Adding this index turns
+those into index scans instead of full table scans, and it scales
+linearly better as the enrolments table grows.
+
+SQL or NoSQL?
+I would choose SQL for this system. The data is inherently relational
+and highly structured: students, courses and the enrolments that link them
+are a textbook many-to-many, and the five required reports are all
+join-and-aggregate queries (JOIN, GROUP BY, LEFT JOIN anti-joins) that
+a relational engine expresses in one line and optimises automatically. The
+integrity rules matter here too — foreign keys stop orphaned enrolments,
+UNIQUE(student_id, course_id) stops a double enrolment, and CHECK
+constraints keep grades and credits sane. These are exactly the guarantees
+a relational database gives for free and a document store would have to
+re-implement in application code. The schema is stable and the volume is
+modest, so there is no compelling scale or schema-flexibility argument for
+NoSQL; a document store would mostly buy us hand-rolled referential
+integrity and awkward many-to-many modelling in exchange for flexibility we
+don't need.
